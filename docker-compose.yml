@@ -1,0 +1,64 @@
+version: '2'
+services:
+        nginx:
+          build:
+            ./nginx
+          networks:
+            - se_backend
+          volumes:
+            - ./nginx/www:/var/www/nginx
+          #ports:
+           # - "8081:80"
+
+        hbase:
+          build:
+            ./hbase
+          networks:
+            se_backend:
+                aliases:
+                  - zookeeper
+          ports:
+            - "8080:8080" #antes era 8080:801
+
+
+
+        gserve1:
+          build:
+            ./gserve
+          networks:
+            - se_backend
+          depends_on:
+            - hbase
+            - grproxy
+          environment:
+            - gserve1_env=gserve1
+
+        gserve2:
+          build:
+            ./gserve
+          networks:
+            - se_backend
+          depends_on:
+            - hbase
+            - grproxy
+          environment:
+            - gserve2_env=gserve2
+
+        grproxy:
+          build:
+            ./grproxy
+          networks:
+            - se_frontend
+            - se_backend
+          ports:
+            - "80:8080" #antes era 80:8080
+          #depends_on:
+            #- nginx
+            #- hbase
+            #- gserve1
+            #- gserve2
+
+networks:
+  se_frontend:
+
+  se_backend:
